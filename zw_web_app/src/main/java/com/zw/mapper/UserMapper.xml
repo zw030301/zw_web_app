@@ -11,7 +11,7 @@
 		id, name, password
 	</sql>
 	<!-- 查询用户 -->
-	<select id="queryById" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+	<select id="queryByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer">
 		select 
 		<include refid="Base_Column_List"/> 
 		from user 
@@ -33,9 +33,9 @@
 			#{userId,jdbcType=DECIMAL}
 		</foreach>
 	</select>
-	<!-- 插入用户 -->
-	<insert id="insertUser" parameterType="com.zw.model.User">
-		insert into user 
+	<!-- 插入用户,useGeneratedKeys默认值为false，keyProperty的值对应的是User类中的主键名 -->
+	<insert id="insertUser" parameterType="com.zw.model.User" useGeneratedKeys="true" keyProperty="id">
+		insert into userInfo 
 		<trim prefix="(" suffix=")" suffixOverrides=",">
 			<if test="id!=null">
 				id,
@@ -44,10 +44,10 @@
 				username,
 			</if>
 			<if test="password!=null">
-				pasword,
+				pwd,
 			</if>
 		</trim>
-		<trim prefix="(" suffix=")" suffixOverrides=",">
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
 			<if test="id!=null">
 				#{id,jdbcType=INTEGER},
 			</if>
@@ -61,8 +61,8 @@
 	</insert>
 	<!-- 批量插入用户 -->
 	<insert id="insertUserByBatch" parameterType="java.util.List">
-		insert into USER 
-		(ID,USERNAME,PASSWORD)
+		insert into userInfo 
+		(id,username,password)
 		select A.* from 
 		(
 		<foreach collection="list" item="user" index="index" separator="union">
@@ -75,7 +75,7 @@
 		) A
 	</insert>
 	<!-- 删除用户 -->
-	<delete id="deleteById" parameterType="java.lang.Integer">
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
 		delete from user 
 		where id =#{id,jdbcType=INTEGER}
 	</delete>
@@ -88,7 +88,7 @@
 		</foreach>
 	</delete>
 	<!-- 更新用户 -->
-	<update id="updateById" parameterType="com.zw.model.User">
+	<update id="updateByPrimaryKey" parameterType="com.zw.model.User">
 		update user 
 		<set>
 			<if test="username!=null">

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
+		<item value="false" key="isRegEx"/>
+		<item value="userInfo" key="selection"/>
+		<item value="false" key="casesensitive"/>
+		<item value="false" key="wholeword"/>
+		<list key="findhistory">
+			<item value="user"/>
+			<item value="insertUser"/>
+			<item value="redisUtil"/>
+			<item value="org.springframework.data.redis.core.StringRedisTemplate"/>
+			<item value="poolConfig"/>
+			<item value="location"/>
+			<item value="log4"/>
+			<item value="slf4j"/>
+		</list>
+		<list key="replacehistory">
+			<item value="userInfo"/>
+		</list>
+	</section>
+</section>

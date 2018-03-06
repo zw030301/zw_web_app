@@ -1,0 +1,6 @@
+package com.zw.common;
+
+public class LogUtil {
+	private static final String METHOD_PREFIX="get";
+	
+}

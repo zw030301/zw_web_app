@@ -1,0 +1,5 @@
+package com.zw.common;
+
+public class HttpUtil {
+
+}

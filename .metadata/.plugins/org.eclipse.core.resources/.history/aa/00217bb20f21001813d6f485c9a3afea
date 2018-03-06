@@ -1,0 +1,8 @@
+package com.zw.common;
+
+import com.alibaba.fastjson.serializer.SerializeConfig;
+
+public class JsonUtil {
+	private static final SerializeConfig SERIALIZE_CONFIG=new SerializeConfig();
+	
+}

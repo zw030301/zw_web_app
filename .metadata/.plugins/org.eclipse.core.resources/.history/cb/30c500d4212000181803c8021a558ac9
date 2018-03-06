@@ -1,0 +1,9 @@
+package com.zw.common;
+
+import org.apache.log4j.Logger;
+
+public class LogUtil {
+	private static final String METHOD_PREFIX="get";
+	
+	private static logger comm=Logger.getLogger("comm");
+}

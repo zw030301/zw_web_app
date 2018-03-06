@@ -1,0 +1,8 @@
+package com.zw.test;
+
+import org.junit.Test;
+import org.springframework.data.redis.core.RedisTemplate;
+
+public class RedisTest {
+	
+}

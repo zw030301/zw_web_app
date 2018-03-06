@@ -1,0 +1,484 @@
+package com.zw.common;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.net.SocketTimeoutException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpException;
+import org.apache.commons.httpclient.HttpStatus;
+import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.methods.RequestEntity;
+import org.apache.commons.httpclient.methods.StringRequestEntity;
+import org.apache.commons.httpclient.params.HttpClientParams;
+import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.util.EntityUtils;
+
+public class HttpUtil {
+	public static int timeOut = 10*1000;
+	
+	public static HttpGet getHttpGet(String url) {
+		return new HttpGet(url);
+	}
+
+	public static HttpPost getHttpPost(String url) {
+		return new HttpPost(url);
+	}
+
+	public static HttpResponse getHttpResponse(HttpGet request)
+			throws ClientProtocolException, IOException {
+		BasicHttpParams httpParameters = new BasicHttpParams();
+		HttpConnectionParams.setConnectionTimeout(httpParameters, timeOut);
+		HttpConnectionParams.setSoTimeout(httpParameters, timeOut);
+		DefaultHttpClient httpClient = new DefaultHttpClient();
+		httpClient.setParams(httpParameters);
+		HttpResponse response = httpClient.execute(request);
+		return response;
+	}
+
+	public static HttpResponse getHttpResponse(HttpPost request)
+			throws ClientProtocolException, IOException {
+		BasicHttpParams httpParameters = new BasicHttpParams();
+		HttpConnectionParams.setConnectionTimeout(httpParameters, timeOut);
+		HttpConnectionParams.setSoTimeout(httpParameters, timeOut);
+		DefaultHttpClient httpClient = new DefaultHttpClient();
+		httpClient.setParams(httpParameters);
+		HttpResponse response = httpClient.execute(request);
+		return response;
+	}
+
+	public static String queryStringForPost(String url) {
+		HttpPost request = HttpUtil.getHttpPost(url);
+		String result = null;
+		try {
+			HttpResponse response = HttpUtil.getHttpResponse(request);
+			if (200 == response.getStatusLine().getStatusCode()) {
+				result = EntityUtils.toString(response.getEntity());
+				return result;
+			}
+		} catch (ClientProtocolException e) {
+			e.printStackTrace();
+			result = "Failed in queryStringForPost锛�";
+			return result;
+		} catch (IOException e) {
+			e.printStackTrace();
+			result = "Failed in queryStringForPost锛�";
+			return result;
+		}
+		return null;
+	}
+	//鍚戞寚瀹歶rl鍙戦�亁ml鏁版嵁
+	public static String sendXmlPost(String url,String xml){
+		String ret = null;
+		System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.SimpleLog");   
+	    System.setProperty("org.apache.commons.logging.simplelog.showdatetime", "true");   
+	    System.setProperty("org.apache.commons.logging.simplelog.log.org.apache.commons.httpclient", "stdout");  
+		HttpClient client = new HttpClient();
+		PostMethod myPost = new PostMethod(url);
+		try {
+			myPost.setRequestEntity(new StringRequestEntity(xml,"text/xml","GBK"));
+			Thread.sleep(5000);
+			int status = client.executeMethod(myPost);
+			if(status == HttpStatus.SC_OK){
+				BufferedInputStream bis = new BufferedInputStream(myPost.getResponseBodyAsStream());
+				byte[] buffer = new byte[1024];
+				ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				int s = 0;
+				while((s=bis.read(buffer))!=-1){
+					baos.write(buffer,0,s);
+				}
+				byte[] data = baos.toByteArray();
+				ret = new String(data,0,data.length,"GBK");
+				baos.close();
+				bis.close();
+			}
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		} catch (HttpException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		finally{
+			myPost.releaseConnection();
+			client.getHttpConnectionManager().closeIdleConnections(0);
+		}
+		return ret;
+	}
+	
+	public static String queryStringForPost(HttpPost request) {
+		String result = null;
+		try {
+			HttpResponse response = HttpUtil.getHttpResponse(request);
+			if (200 == response.getStatusLine().getStatusCode()) {
+				result = EntityUtils.toString(response.getEntity(),"utf-8");
+				return result;
+			}
+		} catch(SocketTimeoutException e){
+			LogUtil.commError(e,"HttpUtil.queryStringForPost()鍑洪敊");
+			return CodeNormal.TIMEOUT.getCode();		//瓒呮椂鏍囪
+		} catch (IOException e) {
+			LogUtil.commError(e,"HttpUtil.queryStringForPost()鍑洪敊");
+			return result;
+		} finally{
+			if(request != null){
+				request.releaseConnection();
+			}
+		}
+		return null;
+	}
+
+	public static String queryStringForGet(String url) {
+		HttpGet request = HttpUtil.getHttpGet(url);
+		String result = null;
+		try {
+			HttpResponse response = HttpUtil.getHttpResponse(request);
+			if (200 == response.getStatusLine().getStatusCode()) {
+				result = EntityUtils.toString(response.getEntity());
+				return result;
+			}
+		} catch(SocketTimeoutException e){
+			LogUtil.commError(e, "Failed in queryStringForGet锛�");
+			return CodeNormal.TIMEOUT.getCode();		//瓒呮椂鏍囪
+		} catch (IOException e) {
+			LogUtil.commError(e,"Failed in queryStringForGet锛�");
+			return result;
+		} finally{
+			if(request != null){
+				request.releaseConnection();
+			}
+		}
+		return null;
+	}
+	
+	/**
+	 * HTTP銆�POST鏂瑰紡鑾峰彇鏁版嵁
+	 * 
+	 * @param param銆�銆�銆�鍙戦�佹暟鎹�
+	 * @return
+	 * @throws Exception
+	 */
+	public static String queryJDStrForPost(String param) throws Exception{
+		HttpPost post = new HttpPost("");
+		List<BasicNameValuePair> pairs = new ArrayList<BasicNameValuePair>();
+		pairs.add(new BasicNameValuePair("param", param));
+		post.setEntity(new UrlEncodedFormEntity(pairs,"UTF-8")); 
+		return HttpUtil.queryStringForPost(post);
+	}
+	 /**
+     * 鍚戞寚瀹歎RL鍙戦�丟ET鏂规硶鐨勮姹�
+     * 
+     * @param url
+     *            鍙戦�佽姹傜殑URL
+     * @param param
+     *            璇锋眰鍙傛暟锛岃姹傚弬鏁板簲璇ユ槸 name1=value1&name2=value2 鐨勫舰寮忋��
+     * @return URL 鎵�浠ｈ〃杩滅▼璧勬簮鐨勫搷搴旂粨鏋�
+     */
+    public static String sendGet(String url, String param) {
+        String result = "";
+        BufferedReader in = null;
+        try {
+        	String urlNameString="";
+        	if(param.equals("")){
+        		urlNameString=url;
+        	}else
+        	urlNameString = url + "?" + param;
+            URL realUrl = new URL(urlNameString);
+            // 鎵撳紑鍜孶RL涔嬮棿鐨勮繛鎺�
+            URLConnection connection = realUrl.openConnection();
+            // 璁剧疆閫氱敤鐨勮姹傚睘鎬�
+            connection.setRequestProperty("accept", "*/*");
+            connection.setRequestProperty("connection", "Keep-Alive");
+            connection.setRequestProperty("user-agent",
+                    "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1;SV1)");
+            // 寤虹珛瀹為檯鐨勮繛鎺�
+            connection.connect();
+            // 鑾峰彇鎵�鏈夊搷搴斿ご瀛楁
+            //Map<String, List<String>> map = connection.getHeaderFields();
+            // 閬嶅巻鎵�鏈夌殑鍝嶅簲澶村瓧娈�
+            //for (String key : map.keySet()) {
+                //System.out.println(key + "--->" + map.get(key));
+           // }
+            // 瀹氫箟 BufferedReader杈撳叆娴佹潵璇诲彇URL鐨勫搷搴�
+            in = new BufferedReader(new InputStreamReader(
+                    connection.getInputStream()));
+            String line;
+            while ((line = in.readLine()) != null) {
+                result += line;
+            }
+        } catch (Exception e) {
+            LogUtil.commError(e, "鍙戦�丟ET璇锋眰鍑虹幇寮傚父锛�");
+        }
+        // 浣跨敤finally鍧楁潵鍏抽棴杈撳叆娴�
+        finally {
+            try {
+                if (in != null) {
+                    in.close();
+                }
+            } catch (Exception e2) {
+                e2.printStackTrace();
+            }
+        }
+        return result;
+    }
+    
+    /**
+     * 鍙戦�乭ttp鎶ユ枃
+     * 
+     * @param requestData		璇锋眰鏁版嵁
+     * @param url				璇锋眰鍦板潃
+     * @param timeOut 			瓒呮椂鏃堕棿 鍗曚綅锛氭绉�
+     * @return
+     * @throws IOException
+     */
+    public static String excute(String requestData, String url, int timeOut) throws IOException {
+		HttpClientParams httpClientParams = new HttpClientParams();
+// 		String encoding = Constants.CHARSET_GBK;
+		String encoding =Constants.CHARSET_UTF8;
+		String contentType = Constants.CONTENTTYPE_TEXT; 
+		httpClientParams.setContentCharset(encoding);
+		httpClientParams.setHttpElementCharset(encoding);
+		HttpClient httpClient = new HttpClient(httpClientParams);
+		httpClient.getHostConfiguration().setHost(url);
+		HttpConnectionManagerParams httpConnectionManagerParams = new HttpConnectionManagerParams();
+		httpConnectionManagerParams.setConnectionTimeout(timeOut);
+		httpConnectionManagerParams.setDefaultMaxConnectionsPerHost(1);
+		httpConnectionManagerParams.setMaxTotalConnections(20);
+		httpConnectionManagerParams.setSoTimeout(timeOut);
+		httpClient.getHttpConnectionManager().setParams(httpConnectionManagerParams);
+		PostMethod postMethod = null;
+		try {
+			RequestEntity requestEntity = new StringRequestEntity(requestData , contentType, encoding);
+			postMethod = new PostMethod(url);
+			postMethod.setRequestEntity(requestEntity);
+			int httpReturnCode = httpClient.executeMethod(postMethod);
+			String responseBody = postMethod.getResponseBodyAsString();
+			postMethod.releaseConnection();
+			return SysUtil.isNull(responseBody) ? "" : responseBody;
+		} catch(SocketTimeoutException e){
+			LogUtil.commError(e, "----------------寮傚父锛歋ocketTimeoutException----------------\n" + e.getMessage());		//瓒呮椂鏍囪
+		}catch (UnsupportedEncodingException e) {
+			LogUtil.commError(e, "----------------寮傚父锛歎nsupportedEncodingException----------------\n" + e.getMessage());
+			throw e;
+		} catch (HttpException e) {
+			LogUtil.commError(e, "----------------寮傚父锛欻ttpException----------------\n" + e.getMessage());
+			throw e;
+		} catch (IOException e) {
+			LogUtil.commError(e, "----------------寮傚父锛欼OException----------------\n" + e.getMessage());
+			throw e;
+		} finally {
+			postMethod.releaseConnection();
+		}
+		return contentType;
+	}
+
+    
+    /**
+     * 鍙戦�乭ttp鎶ユ枃
+     * 
+     * @param requestData		璇锋眰鏁版嵁
+     * @param url				璇锋眰鍦板潃
+     * @param timeOut 			瓒呮椂鏃堕棿 鍗曚綅锛氭绉�
+     * @return
+     * @throws IOException
+     */
+    public static String excutes(String requestData, String url, int timeOut) throws IOException {
+		HttpClientParams httpClientParams = new HttpClientParams();
+		String encoding = Constants.CHARSET_GBK;
+		String contentType = Constants.CONTENTTYPE_TEXT; 
+		httpClientParams.setContentCharset(encoding);
+		httpClientParams.setHttpElementCharset(encoding);
+		HttpClient httpClient = new HttpClient(httpClientParams);
+		httpClient.getHostConfiguration().setHost(url);
+		HttpConnectionManagerParams httpConnectionManagerParams = new HttpConnectionManagerParams();
+		httpConnectionManagerParams.setConnectionTimeout(timeOut);
+		httpConnectionManagerParams.setDefaultMaxConnectionsPerHost(1);
+		httpConnectionManagerParams.setMaxTotalConnections(20);
+		httpConnectionManagerParams.setSoTimeout(timeOut);
+		httpClient.getHttpConnectionManager().setParams(httpConnectionManagerParams);
+		PostMethod postMethod = null;
+		try {
+			postMethod = new PostMethod(url);
+			RequestEntity requestEntity = new StringRequestEntity(requestData , contentType, encoding);
+			postMethod.setRequestEntity(requestEntity);
+			int httpReturnCode = httpClient.executeMethod(postMethod);
+			String responseBody = postMethod.getResponseBodyAsString();
+			postMethod.releaseConnection();
+			return SysUtil.isNull(responseBody) ? "" : responseBody;
+		} catch(SocketTimeoutException e){
+			LogUtil.commError(e, "----------------寮傚父锛歋ocketTimeoutException----------------\n" + e.getMessage());		//瓒呮椂鏍囪
+			return CodeNormal.TIMEOUT.getCode();
+		}catch (UnsupportedEncodingException e) {
+			LogUtil.commError(e, "----------------寮傚父锛歎nsupportedEncodingException----------------\n" + e.getMessage());
+			throw e;
+		} catch (HttpException e) {
+			LogUtil.commError(e, "----------------寮傚父锛欻ttpException----------------\n" + e.getMessage());
+			throw e;
+		} catch (IOException e) {
+			LogUtil.commError(e, "----------------寮傚父锛欼OException----------------\n" + e.getMessage());
+			throw e;
+		} finally {
+			postMethod.releaseConnection();
+		}
+	}
+    
+    /**
+     * 璋冪Н鍒嗚兘鍔涘钩鍙帮紙鐭俊涓嬪彂锛�
+     * @param requestData
+     * @return
+     * @throws IOException
+     */
+    public static String jfExcute(String requestData) throws IOException {
+    	return excute(requestData, Conf.JF_COMMITURL, Conf.TY_TIMEOUT);
+    }
+    /**
+     * 璋冪Н鍒嗚兘鍔涘钩鍙帮紙褰╃エ锛�
+     * @param requestData
+     * @return
+     * @throws IOException
+     */
+    public static String cpExcute(String requestData) throws IOException {
+    	return excute(requestData, Conf.CP_COMMITURL, Conf.TY_TIMEOUT);
+    }
+    /**
+     * 璋冭仈鍔ㄤ紭鍔挎敮浠�
+     * @param requestData
+     * @return
+     * @throws IOException
+     */
+    public static String nuiExcute(String requestData) throws IOException {
+    	return UniExcute(requestData, Conf.NUI_URL, Conf.NUI_TIMEOUT);
+//    	return UniExcute(requestData, "http://218.203.164.7:29090", 20000);
+    }
+    
+    /**
+     * 鍙戦�乭ttp鎶ユ枃
+     * 
+     * @param requestData		璇锋眰鏁版嵁
+     * @param url				璇锋眰鍦板潃
+     * @param timeOut 			瓒呮椂鏃堕棿 鍗曚綅锛氭绉�
+     * @return
+     * @throws IOException
+     */
+    public static String UniExcute(String requestData, String url, int timeOut) throws IOException {
+		HttpClientParams httpClientParams = new HttpClientParams();
+		String encoding = Constants.CHARSET_UTF8;
+		String contentType = Constants.CONTENTTYPE_TEXT; 
+		httpClientParams.setContentCharset(encoding);
+		httpClientParams.setHttpElementCharset(encoding);
+		HttpClient httpClient = new HttpClient(httpClientParams);
+		httpClient.getHostConfiguration().setHost(url);
+		HttpConnectionManagerParams httpConnectionManagerParams = new HttpConnectionManagerParams();
+		httpConnectionManagerParams.setConnectionTimeout(timeOut);
+		httpConnectionManagerParams.setDefaultMaxConnectionsPerHost(1);
+		httpConnectionManagerParams.setMaxTotalConnections(20);
+		httpConnectionManagerParams.setSoTimeout(timeOut);
+		httpClient.getHttpConnectionManager().setParams(httpConnectionManagerParams);
+		PostMethod postMethod = null;
+		try {
+			postMethod = new PostMethod(url);
+			postMethod.addRequestHeader("Accept-Language","zh-cn");
+			postMethod.addRequestHeader("Connection","Keep-Alive");
+			RequestEntity requestEntity = new StringRequestEntity(requestData , contentType, encoding);
+			postMethod.setRequestEntity(requestEntity);
+			int httpReturnCode = httpClient.executeMethod(postMethod);
+			String responseBody = postMethod.getResponseBodyAsString();
+			postMethod.releaseConnection();
+			return SysUtil.isNull(responseBody) ? "" : responseBody;
+		} catch(SocketTimeoutException e){
+			LogUtil.commError(e, "----------------寮傚父锛歋ocketTimeoutException----------------\n" + e.getMessage());
+			return CodeNormal.TIMEOUT.getCode();		//瓒呮椂鏍囪
+		}catch (UnsupportedEncodingException e) {
+			LogUtil.commError(e, "----------------寮傚父锛歎nsupportedEncodingException----------------\n" + e.getMessage());
+			throw e;
+		} catch (HttpException e) {
+			LogUtil.commError(e, "----------------寮傚父锛欻ttpException----------------\n" + e.getMessage());
+			throw e;
+		} catch (IOException e) {
+			LogUtil.commError(e, "----------------寮傚父锛欼OException----------------\n" + e.getMessage());
+			throw e;
+		} finally {
+			postMethod.releaseConnection();
+		}
+	}
+    
+  //鍚戞寚瀹歶rl鍙戦�亁ml鏁版嵁   UTF-8 鏍煎紡
+  	public static String sendXmlPostUtf8(String url,String xml){
+  		String ret = null;
+  		System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.SimpleLog");   
+  	    System.setProperty("org.apache.commons.logging.simplelog.showdatetime", "true");   
+  	    System.setProperty("org.apache.commons.logging.simplelog.log.org.apache.commons.httpclient", "stdout");  
+  	    
+  	    
+  	    
+  	    
+  	    
+  		HttpClient client = new HttpClient();
+  		
+  		PostMethod myPost = new PostMethod(url);
+  		try {
+  			myPost.setRequestEntity(new StringRequestEntity(xml,"text/xml","UTF-8"));
+  			Thread.sleep(5000);
+  			int status = client.executeMethod(myPost);
+  			
+  			if(status == HttpStatus.SC_OK){
+  				BufferedInputStream bis = new BufferedInputStream(myPost.getResponseBodyAsStream());
+  				byte[] buffer = new byte[1024];
+  				ByteArrayOutputStream baos = new ByteArrayOutputStream();
+  				int s = 0;
+  				while((s=bis.read(buffer))!=-1){
+  					baos.write(buffer,0,s);
+  				}
+  				byte[] data = baos.toByteArray();
+  				ret = new String(data,0,data.length,"UTF-8");
+  				baos.close();
+  				bis.close();
+  			}
+  		} catch (UnsupportedEncodingException e) {
+  			e.printStackTrace();
+  		} catch (HttpException e) {
+  			e.printStackTrace();
+  		} catch (IOException e) {
+  			e.printStackTrace();
+  		} catch (InterruptedException e) {
+  			// TODO Auto-generated catch block
+  			e.printStackTrace();
+  		}
+  		finally{
+  			myPost.releaseConnection();
+  			client.getHttpConnectionManager().closeIdleConnections(0);
+  		}
+  		return ret;
+  	}
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+}

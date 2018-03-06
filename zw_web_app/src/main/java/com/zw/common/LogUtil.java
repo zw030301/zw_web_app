@@ -12,25 +12,42 @@ public class LogUtil {
 	 */
 	private static Logger comm=Logger.getLogger("comm");
 	private static Logger api=Logger.getLogger("api");
-	private static Logger debug=Logger.getLogger("debug");
 	private static Logger sql=Logger.getLogger("sql");
-	public static void commDebug(String arg) {
-		comm.debug(arg);
+	public static void commDebug(String message) {
+		comm.debug(message);
 	}
-	public static void commInfo(String arg) {
-		comm.info(arg);
+	public static void commInfo(String message) {
+		comm.info(message);
 	}
-	public static void commError(String arg) {
-		comm.error(arg);
+	public static void commError(String message) {
+		comm.error(message);
 	}
-	public static void commError(String arg,Exception e) {
-		comm.error(arg+"\r\n"+getExpMessage(e));
+	public static void commError(String message,Exception e) {
+		comm.error(message+"\r\n"+getExpMessage(e));
 	}
-	public static void apiDebug(String arg) {
-		api.debug(arg);
+	public static void apiDebug(String message) {
+		api.debug(message);
 	}
-	public static void apiInfo(String arg) {
-		api.info(arg);
+	public static void apiInfo(String message) {
+		api.info(message);
+	}
+	public static void apiError(String message) {
+		api.error(message);
+	}
+	public static void apiError(String message,Exception e) {
+		api.error(message+"\r\n"+getExpMessage(e));
+	}
+	public static void sqlDebug(String message) {
+		sql.debug(message);
+	}
+	public static void sqlInfo(String message) {
+		sql.info(message);
+	}
+	public static void sqlError(String message) {
+		sql.error(message);
+	}
+	public static void sqlError(String message,Exception e) {
+		sql.error(message+"\r\n"+getExpMessage(e));
 	}
 	public static String getExpMessage(Exception e) {
 		ByteArrayOutputStream buf = new ByteArrayOutputStream();

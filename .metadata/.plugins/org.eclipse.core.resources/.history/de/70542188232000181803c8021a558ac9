@@ -1,0 +1,26 @@
+package com.zw.common;
+
+import org.apache.log4j.Logger;
+
+public class LogUtil {
+	private static final String METHOD_PREFIX="get";
+	/**
+	 * »’÷æ…Ë÷√
+	 */
+	private static Logger comm=Logger.getLogger("comm");
+	private static Logger api=Logger.getLogger("api");
+	private static Logger debug=Logger.getLogger("debug");
+	private static Logger sql=Logger.getLogger("sql");
+	public static void commDebug(String arg) {
+		comm.debug(arg);
+	}
+	public static void commInfo(String arg) {
+		comm.info(arg);
+	}
+	public static void commError(String arg) {
+		comm.error(arg);
+	}
+	public static void commError(String arg,Exception e) {
+		comm.error(arg, e);
+	}
+}

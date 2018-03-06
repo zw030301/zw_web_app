@@ -1,0 +1,12 @@
+package com.zw.common;
+
+import java.sql.Date;
+
+import com.alibaba.fastjson.serializer.SerializeConfig;
+
+public class JsonUtil {
+	private static final SerializeConfig SERIALIZE_CONFIG=new SerializeConfig();
+	static {
+		SERIALIZE_CONFIG.put(Date.class, new SimpleDateFormatSerializer("yyyy-MM-dd"));
+	}
+}
